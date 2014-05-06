@@ -4,7 +4,7 @@
     <Import Project="GeneralSettings.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <GLEW_PATH>path_to\glew-1.9.0</GLEW_PATH>
+    <GLEW_PATH>C:\emu\play2\glew-1.10.0</GLEW_PATH>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup>
