@@ -32,12 +32,15 @@ namespace Framework
 
 			CRect&		Adjust(uint32, bool = false);
 			CRect&		Inflate(int, int);
+			CRect&		CenterInside(const CRect&);
 			CRect&		ScreenToClient(HWND);
 			CRect&		ClientToScreen(HWND);
-			bool		PtIn(int, int);
+			bool		PtIn(int, int) const;
 
 		private:
 			RECT		m_rect;
 		};
+
+		CRect MakeRectPositionSize(int, int, int, int);
 	}
 }

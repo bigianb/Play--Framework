@@ -1,23 +1,35 @@
 #include "win32/Font.h"
+#include "win32/ClientDeviceContext.h"
 
 using namespace Framework;
 
-HFONT Win32::CreateFont(const TCHAR* sFaceName, unsigned int nHeight)
+HFONT Win32::CreateFont(const TCHAR* faceName, unsigned int height)
 {
-	LOGFONT Font;
-	memset(&Font, 0, sizeof(Font));
-	Font.lfHeight			= -MulDiv(nHeight, GetDeviceCaps(GetDC(NULL), LOGPIXELSY), 72);
-	Font.lfWidth			= 0;
-	Font.lfOrientation		= 0;
-	Font.lfWeight			= FW_NORMAL;
-	Font.lfItalic			= FALSE;
-	Font.lfUnderline		= FALSE;
-	Font.lfStrikeOut		= FALSE;
-	Font.lfCharSet			= OEM_CHARSET;
-	Font.lfOutPrecision		= OUT_DEFAULT_PRECIS;
-	Font.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
-	Font.lfQuality			= DEFAULT_QUALITY;
-	Font.lfPitchAndFamily	= DEFAULT_PITCH;
-	_tcsncpy(Font.lfFaceName, sFaceName, LF_FACESIZE);
-	return CreateFontIndirect(&Font);
+	LOGFONT font;
+	memset(&font, 0, sizeof(font));
+	font.lfHeight			= -MulDiv(height, GetDeviceCaps(GetDC(NULL), LOGPIXELSY), 72);
+	font.lfWidth			= 0;
+	font.lfOrientation		= 0;
+	font.lfWeight			= FW_NORMAL;
+	font.lfItalic			= FALSE;
+	font.lfUnderline		= FALSE;
+	font.lfStrikeOut		= FALSE;
+	font.lfCharSet			= DEFAULT_CHARSET;
+	font.lfOutPrecision		= OUT_DEFAULT_PRECIS;
+	font.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
+	font.lfQuality			= DEFAULT_QUALITY;
+	font.lfPitchAndFamily	= DEFAULT_PITCH;
+	_tcsncpy(font.lfFaceName, faceName, LF_FACESIZE);
+	return CreateFontIndirect(&font);
+}
+
+SIZE Win32::GetFixedFontSize(HFONT font)
+{
+	Framework::Win32::CClientDeviceContext dc(NULL);
+
+	dc.SelectObject(font);
+
+	SIZE s = { 0, 0 };
+	GetTextExtentPoint32(dc, _T("0"), 1, &s);
+	return s;
 }

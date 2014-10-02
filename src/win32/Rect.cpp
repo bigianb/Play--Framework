@@ -89,6 +89,17 @@ CRect& CRect::Inflate(int nDx, int nDy)
 	return (*this);
 }
 
+CRect& CRect::CenterInside(const CRect& parentRect)
+{
+	unsigned int width = Width();
+	unsigned int height = Height();
+	m_rect.left = parentRect.Left() + ((parentRect.Width() - width) / 2);
+	m_rect.top = parentRect.Top() + ((parentRect.Height() - height) / 2);
+	m_rect.right = m_rect.left + width;
+	m_rect.bottom = m_rect.top + height;
+	return (*this);
+}
+
 CRect& CRect::ScreenToClient(HWND window)
 {
 	::ScreenToClient(window, reinterpret_cast<LPPOINT>(&m_rect) + 0);
@@ -103,10 +114,15 @@ CRect& CRect::ClientToScreen(HWND window)
 	return (*this);
 }
 
-bool CRect::PtIn(int nX, int nY)
+bool CRect::PtIn(int nX, int nY) const
 {
 	POINT pt;
 	pt.x = nX;
 	pt.y = nY;
 	return PtInRect(&m_rect, pt) != 0;
+}
+
+CRect Framework::Win32::MakeRectPositionSize(int left, int top, int width, int height)
+{
+	return CRect(left, top, left + width, top + height);
 }
