@@ -1,8 +1,8 @@
 LOCAL_PATH:= $(call my-dir)
 
-include $(CLEAR_VARS)
+include $(LOCAL_PATH)/ExternalDependencies.mk
 
-BOOST_PATH			:= /cygdrive/c/Components/boost_trunk
+include $(CLEAR_VARS)
 
 LOCAL_MODULE		:= libFramework
 LOCAL_SRC_FILES		:= 	../../src/Base64.cpp \
@@ -22,6 +22,7 @@ LOCAL_SRC_FILES		:= 	../../src/Base64.cpp \
 						../../src/layout/LayoutObject.cpp \
 						../../src/layout/LayoutStretch.cpp \
 						../../src/layout/VerticalLayout.cpp \
+						../../src/MemStream.cpp \
 						../../src/PtrStream.cpp \
 						../../src/Stream.cpp \
 						../../src/StreamBitStream.cpp \
