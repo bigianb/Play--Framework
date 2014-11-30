@@ -93,6 +93,12 @@ CRect& CRect::CenterInside(const CRect& parentRect)
 {
 	unsigned int width = Width();
 	unsigned int height = Height();
+	if (parentRect.Width() < width){
+		width = parentRect.Width();
+	}
+	if (parentRect.Height() < height){
+		height = parentRect.Height();
+	}
 	m_rect.left = parentRect.Left() + ((parentRect.Width() - width) / 2);
 	m_rect.top = parentRect.Top() + ((parentRect.Height() - height) / 2);
 	m_rect.right = m_rect.left + width;
