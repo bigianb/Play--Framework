@@ -23,6 +23,7 @@ LOCAL_SRC_FILES		:= 	../../src/Base64.cpp \
 						../../src/layout/LayoutObject.cpp \
 						../../src/layout/LayoutStretch.cpp \
 						../../src/layout/VerticalLayout.cpp \
+						../../src/math/MathStringUtils.cpp \
 						../../src/MemStream.cpp \
 						../../src/mpeg2/CodedBlockPatternTable.cpp \
 						../../src/mpeg2/DcSizeChrominanceTable.cpp \
@@ -38,6 +39,8 @@ LOCAL_SRC_FILES		:= 	../../src/Base64.cpp \
 						../../src/mpeg2/MotionCodeTable.cpp \
 						../../src/mpeg2/QuantiserScaleTable.cpp \
 						../../src/mpeg2/VLCTable.cpp \
+						../../src/opengl/Program.cpp \
+						../../src/opengl/Shader.cpp \
 						../../src/PathUtils.cpp \
 						../../src/PtrStream.cpp \
 						../../src/Stream.cpp \
