@@ -5,7 +5,9 @@ include $(LOCAL_PATH)/ExternalDependencies.mk
 include $(CLEAR_VARS)
 
 LOCAL_MODULE		:= libFramework
-LOCAL_SRC_FILES		:= 	../../src/Base64.cpp \
+LOCAL_SRC_FILES		:= 	../../src/Android/AssetManager.cpp \
+						../../src/Android/AssetStream.cpp \
+						../../src/Base64.cpp \
 						../../src/bitmap/Bitmap.cpp \
 						../../src/bitmap/BMP.cpp \
 						../../src/bitmap/JPEG.cpp \
@@ -63,5 +65,9 @@ LOCAL_SRC_FILES		:= 	../../src/Base64.cpp \
 LOCAL_CFLAGS			:= -Wno-extern-c-compat
 LOCAL_C_INCLUDES		:= $(BOOST_PATH) $(LOCAL_PATH)/../../include
 LOCAL_CPP_FEATURES		:= exceptions rtti
+
+ifeq ($(APP_OPTIM),debug)
+LOCAL_CFLAGS			+= -D_DEBUG
+endif
 
 include $(BUILD_STATIC_LIBRARY)
