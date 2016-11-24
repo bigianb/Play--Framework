@@ -8,38 +8,17 @@
 
 using namespace Framework;
 
-CBitmap::CBitmap()
-: m_pixels(nullptr)
-, m_width(0)
-, m_height(0)
-, m_bpp(0)
-{
-
-}
-
 CBitmap::CBitmap(const CBitmap& src)
-: m_pixels(nullptr)
-, m_width(0)
-, m_height(0)
-, m_bpp(0)
 {
 	CopyFrom(src);
 }
 
 CBitmap::CBitmap(CBitmap&& src)
-: m_pixels(nullptr)
-, m_width(0)
-, m_height(0)
-, m_bpp(0)
 {
 	MoveFrom(std::move(src));
 }
 
 CBitmap::CBitmap(unsigned int nWidth, unsigned int nHeight, unsigned int nBPP)
-: m_pixels(nullptr)
-, m_width(0)
-, m_height(0)
-, m_bpp(0)
 {
 	Allocate(nWidth, nHeight, nBPP);
 }
@@ -112,11 +91,14 @@ CColor CBitmap::GetPixel(unsigned int x, unsigned int y) const
 	uint8* pixelPtr = (m_pixels + (GetPitch() * y) + (GetPixelSize() * x));
 	switch(m_bpp)
 	{
-	case 32:
-		return CColor(pixelPtr[0], pixelPtr[1], pixelPtr[2], pixelPtr[3]);
+	case 8:
+		return CColor(pixelPtr[0], 0, 0, 0);
 		break;
 	case 24:
 		return CColor(pixelPtr[0], pixelPtr[1], pixelPtr[2], 0);
+		break;
+	case 32:
+		return CColor(pixelPtr[0], pixelPtr[1], pixelPtr[2], pixelPtr[3]);
 		break;
 	default:
 		throw std::runtime_error("Unknown bit depth.");
@@ -137,6 +119,14 @@ void CBitmap::SetPixel(unsigned int x, unsigned int y, const CColor& color)
 	uint8* pixelPtr = (m_pixels + (GetPitch() * y) + (GetPixelSize() * x));
 	switch(m_bpp)
 	{
+	case 8:
+		pixelPtr[0] = color.r;
+		break;
+	case 24:
+		pixelPtr[0] = color.r;
+		pixelPtr[1] = color.g;
+		pixelPtr[2] = color.b;
+		break;
 	case 32:
 		pixelPtr[0] = color.r;
 		pixelPtr[1] = color.g;
@@ -384,8 +374,8 @@ void CBitmap::CopyFrom(const CBitmap& src)
 
 void CBitmap::MoveFrom(CBitmap&& src)
 {
-	std::swap(src.m_pixels,	m_pixels);
-	std::swap(src.m_width,	m_width);
-	std::swap(src.m_height,	m_height);
-	std::swap(src.m_bpp,	m_bpp);
+	std::swap(src.m_pixels, m_pixels);
+	std::swap(src.m_width,  m_width);
+	std::swap(src.m_height, m_height);
+	std::swap(src.m_bpp,    m_bpp);
 }

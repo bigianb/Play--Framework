@@ -1,21 +1,23 @@
 #pragma once
 
 #include <string>
-#include <boost/utility.hpp>
-#include <boost/filesystem/path.hpp>
+#include "boost_filesystem_def.h"
 #include <map>
 #include <mutex>
 #include "xml/Node.h"
 
 namespace Framework
 {
-	class CConfig : public boost::noncopyable
+	class CConfig
 	{
 	public:
 		typedef boost::filesystem::path PathType;
 
 											CConfig(const PathType&, bool readonly = false);
+											CConfig(const CConfig&) = delete;
 		virtual								~CConfig();
+
+		CConfig&							operator =(const CConfig&) = delete;
 
 		static std::string					MakePreferenceName(const std::string&, const std::string& = "", const std::string& = "", const std::string& = "");
 

@@ -27,11 +27,18 @@ CManager::~CManager()
 	m_updateThreadOver = true;
 	WaitForSingleObject(m_updateThreadHandle, INFINITE);
 	DeleteCriticalSection(&m_updateMutex);
-	m_devices.clear();
-	if(m_directInput != NULL)
+}
+
+void CManager::SetFocusWindow(HWND focusWindow)
+{
+	EnterCriticalSection(&m_updateMutex);
 	{
-		m_directInput->Release();
+		for(const auto& devicePair : m_devices)
+		{
+			devicePair.second->SetFocusWindow(focusWindow);
+		}
 	}
+	LeaveCriticalSection(&m_updateMutex);
 }
 
 uint32 CManager::RegisterInputEventHandler(const InputEventHandler& inputEventHandler)
@@ -56,34 +63,32 @@ void CManager::UnregisterInputEventHandler(uint32 eventHandlerId)
 	LeaveCriticalSection(&m_updateMutex);
 }
 
-void CManager::CreateKeyboard(HWND window)
+void CManager::CreateKeyboard()
 {
-	LPDIRECTINPUTDEVICE8 device;
+	CDevice::DirectInputDevicePtr device;
 	if(FAILED(m_directInput->CreateDevice(GUID_SysKeyboard, &device, NULL)))
 	{
 		throw std::runtime_error("Couldn't create device.");
 	}
 	EnterCriticalSection(&m_updateMutex);
 	{
-		m_devices[GUID_SysKeyboard] = DevicePtr(new CKeyboard(device, window));
+		m_devices[GUID_SysKeyboard] = std::make_shared<CKeyboard>(device);
 	}
 	LeaveCriticalSection(&m_updateMutex);
 }
 
-void CManager::CreateJoysticks(HWND window)
+void CManager::CreateJoysticks()
 {
-	for(auto joystickIterator(std::begin(m_joystickInstances));
-		std::end(m_joystickInstances) != joystickIterator; joystickIterator++)
+	for(const auto& joystickInstance : m_joystickInstances)
 	{
-		LPDIRECTINPUTDEVICE8 device;
-		const auto& deviceGuid(*joystickIterator);
-		if(FAILED(m_directInput->CreateDevice(deviceGuid, &device, NULL)))
+		CDevice::DirectInputDevicePtr device;
+		if(FAILED(m_directInput->CreateDevice(joystickInstance, &device, NULL)))
 		{
 			continue;
 		}
 		EnterCriticalSection(&m_updateMutex);
 		{
-			m_devices[deviceGuid] = DevicePtr(new CJoystick(device, window));
+			m_devices[joystickInstance] = std::make_shared<CJoystick>(device);
 		}
 		LeaveCriticalSection(&m_updateMutex);
 	}
@@ -118,26 +123,24 @@ BOOL CManager::EnumDevicesCallbackImpl(LPCDIDEVICEINSTANCE lpddi)
 	return DIENUM_CONTINUE;
 }
 
-void CManager::CallInputEventHandlers(const GUID& device, uint32 id, uint32 value)
-{
-	for(auto inputEventHandlerIterator(std::begin(m_inputEventHandlers));
-		inputEventHandlerIterator != std::end(m_inputEventHandlers); inputEventHandlerIterator++)
-	{
-		inputEventHandlerIterator->second(device, id, value);
-	}
-}
-
 DWORD CManager::UpdateThreadProc()
 {
-	auto inputEventHandler = std::bind(&CManager::CallInputEventHandlers, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+	auto inputEventHandler = 
+		[this] (const GUID& device, uint32 id, uint32 value)
+		{
+			for(const auto& inputEventHandler : m_inputEventHandlers)
+			{
+				inputEventHandler.second(device, id, value);
+			}
+		};
+
 	while(!m_updateThreadOver)
 	{
 		EnterCriticalSection(&m_updateMutex);
 		{
-			for(auto deviceIterator(std::begin(m_devices));
-				deviceIterator != std::end(m_devices); deviceIterator++)
+			for(const auto& devicePair : m_devices)
 			{
-				auto& device = deviceIterator->second;
+				auto& device = devicePair.second;
 				device->ProcessEvents(inputEventHandler);
 			}
 		}

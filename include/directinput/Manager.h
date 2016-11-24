@@ -1,5 +1,4 @@
-#ifndef _DIRECTINPUTMANAGER_H_
-#define _DIRECTINPUTMANAGER_H_
+#pragma once
 
 #include "DirectInput.h"
 #include <memory>
@@ -7,6 +6,7 @@
 #include <map>
 #include <unordered_map>
 #include "win32/GuidUtils.h"
+#include "win32/ComPtr.h"
 #include "Device.h"
 
 namespace Framework
@@ -21,11 +21,13 @@ namespace Framework
 									CManager();
 			virtual					~CManager();
 
+			void					SetFocusWindow(HWND);
+
 			uint32					RegisterInputEventHandler(const InputEventHandler&);
 			void					UnregisterInputEventHandler(uint32);
 
-			void					CreateKeyboard(HWND);
-			void					CreateJoysticks(HWND);
+			void					CreateKeyboard();
+			void					CreateJoysticks();
 			bool					GetDeviceInfo(const GUID&, DIDEVICEINSTANCE*);
 			bool					GetDeviceObjectInfo(const GUID&, uint32, DIDEVICEOBJECTINSTANCE*);
 
@@ -34,8 +36,7 @@ namespace Framework
 			typedef std::map<GUID, DevicePtr> DeviceList;
 			typedef std::list<GUID> JoystickInstanceList;
 			typedef std::unordered_map<uint32, InputEventHandler> InputEventHandlerMap;
-
-			void					CallInputEventHandlers(const GUID&, uint32, uint32);
+			typedef Framework::Win32::CComPtr<IDirectInput8> DirectInputPtr;
 
 			DWORD					UpdateThreadProc();
 			static DWORD CALLBACK	UpdateThreadProcStub(void*);
@@ -43,7 +44,7 @@ namespace Framework
 			static BOOL CALLBACK	EnumDevicesCallback(LPCDIDEVICEINSTANCE, LPVOID);
 			BOOL					EnumDevicesCallbackImpl(LPCDIDEVICEINSTANCE);
 
-			LPDIRECTINPUT8			m_directInput;
+			DirectInputPtr			m_directInput;
 			JoystickInstanceList	m_joystickInstances;
 			DeviceList				m_devices;
 
@@ -56,5 +57,3 @@ namespace Framework
 		};
 	}
 }
-
-#endif
