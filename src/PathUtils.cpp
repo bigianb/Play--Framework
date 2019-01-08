@@ -5,7 +5,7 @@ using namespace Framework;
 
 #ifdef _WIN32
 
-#if WINAPI_FAMILY_PARTITION(WINAPI_FAMILY_APP)
+#if WINAPI_FAMILY_ONE_PARTITION(WINAPI_FAMILY, WINAPI_PARTITION_APP)
 
 boost::filesystem::path PathUtils::GetPersonalDataPath()
 {
@@ -42,6 +42,11 @@ boost::filesystem::path PathUtils::GetAppResourcesPath()
 	return boost::filesystem::path(".");
 }
 
+boost::filesystem::path PathUtils::GetCachePath()
+{
+	return GetPathFromCsidl(CSIDL_LOCAL_APPDATA);
+}
+
 #endif	// !WINAPI_PARTITION_APP
 
 #endif	// _WIN32
@@ -53,17 +58,10 @@ boost::filesystem::path PathUtils::GetAppResourcesPath()
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>
 
-boost::filesystem::path PathUtils::GetSettingsPath()
-{
-	NSArray* paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
-	std::string directory = [[paths objectAtIndex: 0] UTF8String];
-	return boost::filesystem::path(directory);
-}
-
 boost::filesystem::path PathUtils::GetRoamingDataPath()
 {
 	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-	std::string directory = [[paths objectAtIndex: 0] UTF8String];
+	std::string directory = [[paths objectAtIndex: 0] fileSystemRepresentation];
 	return boost::filesystem::path(directory);
 }
 
@@ -71,12 +69,19 @@ boost::filesystem::path PathUtils::GetAppResourcesPath()
 {
 	NSBundle* bundle = [NSBundle mainBundle];
 	NSString* bundlePath = [bundle resourcePath];
-	return boost::filesystem::path([bundlePath UTF8String]);
+	return boost::filesystem::path([bundlePath fileSystemRepresentation]);
 }
 
 boost::filesystem::path PathUtils::GetPersonalDataPath()
 {
 	return GetRoamingDataPath();
+}
+
+boost::filesystem::path PathUtils::GetCachePath()
+{
+	NSArray* paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+	std::string directory = [[paths objectAtIndex: 0] fileSystemRepresentation];
+	return boost::filesystem::path(directory);
 }
 
 #elif defined(__ANDROID__)
@@ -97,6 +102,11 @@ boost::filesystem::path PathUtils::GetRoamingDataPath()
 boost::filesystem::path PathUtils::GetPersonalDataPath()
 {
 	return s_filesDirPath;
+}
+
+boost::filesystem::path PathUtils::GetCachePath()
+{
+	throw std::runtime_error("Not implemented.");
 }
 
 void PathUtils::SetFilesDirPath(const char* filesDirPath)
@@ -120,6 +130,11 @@ boost::filesystem::path PathUtils::GetRoamingDataPath()
 boost::filesystem::path PathUtils::GetPersonalDataPath()
 {
 	return boost::filesystem::path(getenv("HOME")) / ".local/share";
+}
+
+boost::filesystem::path PathUtils::GetCachePath()
+{
+	return boost::filesystem::path(getenv("HOME")) / ".cache";
 }
 
 #else	// !DEFINED(__ANDROID__) || !DEFINED(__APPLE__) || !DEFINED(__linux__) || !DEFINED(__FreeBSD__)

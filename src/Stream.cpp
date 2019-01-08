@@ -3,11 +3,6 @@
 
 using namespace Framework;
 
-CStream::~CStream()
-{
-
-}
-
 void CStream::Flush()
 {
 
@@ -89,6 +84,22 @@ std::string CStream::ReadString(size_t length)
 	char* stringBuffer = reinterpret_cast<char*>(alloca(length));
 	Read(stringBuffer, length);
 	return std::string(stringBuffer, stringBuffer + length);
+}
+
+std::string CStream::ReadLine(bool ignoreCr)
+{
+	std::string result;
+	uint8 currChar = Read8();
+	while(!IsEOF())
+	{
+		if(currChar == '\n') break;
+		if(!(ignoreCr && (currChar == '\r')))
+		{
+			result += currChar;
+		}
+		currChar = Read8();
+	}
+	return result;
 }
 
 void CStream::Write8(uint8 nValue)

@@ -1,21 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
 project(Framework_Http)
 
-set(CMAKE_MODULE_PATH
-	${CMAKE_CURRENT_SOURCE_DIR}/../../../Dependencies/cmake-modules
-	${CMAKE_MODULE_PATH}
-)
+include(../Framework_Common.cmake)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
-
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if(APPLE)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
-endif(APPLE)
-
-include_directories(../../include)
+if(NOT TARGET Framework)
+	add_subdirectory(
+		${CMAKE_CURRENT_SOURCE_DIR}/../Framework
+		${CMAKE_CURRENT_BINARY_DIR}/Framework
+	)
+endif()
 
 set(SRC_FILES
 	../../src/http/HttpClient.cpp
@@ -42,6 +35,7 @@ elseif(WIN32)
 		../../src/http/Win32HttpClient.cpp
 		../../include/http/Win32HttpClient.h
 	)
+	list(APPEND PROJECT_LIBS wininet)
 elseif(APPLE)
 	set(PLATFORM_SRC_FILES
 		../../src/http/AppleHttpClient.cpp
@@ -50,3 +44,5 @@ elseif(APPLE)
 endif()
 
 add_library(Framework_Http ${SRC_FILES} ${PLATFORM_SRC_FILES})
+target_link_libraries(Framework_Http PUBLIC Framework ${PROJECT_LIBS})
+target_include_directories(Framework_Http PUBLIC ${FRAMEWORK_INCLUDE_DIR})

@@ -6,7 +6,17 @@
 #include "xml/Parser.h"
 #include "xml/Utils.h"
 #include "xml/FilteringNodeIterator.h"
+#include "PathUtils.h"
 #include "StdStreamUtils.h"
+
+#define PREFERENCE_ATTRIBUTE_NAME_NAME "Name"
+#define PREFERENCE_ATTRIBUTE_NAME_TYPE "Type"
+#define PREFERENCE_ATTRIBUTE_NAME_VALUE "Value"
+
+#define PREFERENCE_TYPE_NAME_INTEGER "integer"
+#define PREFERENCE_TYPE_NAME_BOOLEAN "boolean"
+#define PREFERENCE_TYPE_NAME_STRING "string"
+#define PREFERENCE_TYPE_NAME_PATH "path"
 
 using namespace Framework;
 
@@ -44,37 +54,11 @@ std::string CConfig::MakePreferenceName(const std::string& level0, const std::st
 }
 
 namespace Framework {
-	
-template <> std::shared_ptr<CConfig::CPreference> CConfig::CastPreference<CConfig::CPreference>(const PreferencePtr& preference)
+
+template <>
+std::shared_ptr<CConfig::CPreference> CConfig::CastPreference<CConfig::CPreference>(const PreferencePtr& preference)
 {
 	return preference;
-}
-
-template <> std::shared_ptr<CConfig::CPreferenceInteger> CConfig::CastPreference<CConfig::CPreferenceInteger>(const PreferencePtr& preference)
-{
-	if(preference->GetType() != TYPE_INTEGER)
-	{
-		return std::shared_ptr<CConfig::CPreferenceInteger>();
-	}
-	return std::static_pointer_cast<CConfig::CPreferenceInteger>(preference);
-}
-
-template <> std::shared_ptr<CConfig::CPreferenceBoolean> CConfig::CastPreference<CConfig::CPreferenceBoolean>(const PreferencePtr& preference)
-{
-	if(preference->GetType() != TYPE_BOOLEAN)
-	{
-		return std::shared_ptr<CConfig::CPreferenceBoolean>();
-	}
-	return std::static_pointer_cast<CConfig::CPreferenceBoolean>(preference);
-}
-
-template <> std::shared_ptr<CConfig::CPreferenceString> CConfig::CastPreference<CConfig::CPreferenceString>(const PreferencePtr& preference)
-{
-	if(preference->GetType() != TYPE_STRING)
-	{
-		return std::shared_ptr<CConfig::CPreferenceString>();
-	}
-	return std::static_pointer_cast<CConfig::CPreferenceString>(preference);
 }
 
 }
@@ -131,6 +115,17 @@ void CConfig::RegisterPreferenceString(const char* name, const char* value)
 	InsertPreference(preference);
 }
 
+void CConfig::RegisterPreferencePath(const char* name, const PathType& value)
+{
+	if(FindPreference<CPreference>(name))
+	{
+		return;
+	}
+
+	auto preference = std::make_shared<CPreferencePath>(name, value);
+	InsertPreference(preference);
+}
+
 int CConfig::GetPreferenceInteger(const char* name)
 {
 	auto preference = FindPreference<CPreferenceInteger>(name);
@@ -149,6 +144,13 @@ const char* CConfig::GetPreferenceString(const char* name)
 {
 	auto preference = FindPreference<CPreferenceString>(name);
 	if(!preference) return "";
+	return preference->GetValue();
+}
+
+CConfig::PathType CConfig::GetPreferencePath(const char* name)
+{
+	auto preference = FindPreference<CPreferencePath>(name);
+	if(!preference) return PathType();
 	return preference->GetValue();
 }
 
@@ -179,6 +181,15 @@ bool CConfig::SetPreferenceString(const char* name, const char* value)
 	return true;
 }
 
+bool CConfig::SetPreferencePath(const char* name, const PathType& value)
+{
+	if(m_readonly) throw std::runtime_error("Setting preference on read-only config is illegal.");
+	auto preference = FindPreference<CPreferencePath>(name);
+	if(!preference) return false;
+	preference->SetValue(value);
+	return true;
+}
+
 CConfig::PathType CConfig::GetConfigPath() const
 {
 	return m_path;
@@ -198,45 +209,59 @@ void CConfig::Load()
 		return;
 	}
 
-	Xml::CNode* pConfig = document->Select("Config");
-	if(pConfig == NULL)
+	auto configNode = document->Select("Config");
+	if(!configNode)
 	{
 		return;
 	}
 
-	for(Xml::CFilteringNodeIterator itNode(pConfig, "Preference"); !itNode.IsEnd(); itNode++)
+	for(Xml::CFilteringNodeIterator itNode(configNode, "Preference"); !itNode.IsEnd(); itNode++)
 	{
-		Xml::CNode* pPref = (*itNode);
+		auto prefNode = (*itNode);
 
-		const char* sType = pPref->GetAttribute("Type");
-		const char* name = pPref->GetAttribute("Name");
+		auto type = prefNode->GetAttribute(PREFERENCE_ATTRIBUTE_NAME_TYPE);
+		auto name = prefNode->GetAttribute(PREFERENCE_ATTRIBUTE_NAME_NAME);
 
-		if(sType == NULL) continue;
-		if(name == NULL) continue;
+		if(!type) continue;
+		if(!name) continue;
 
-		if(!strcmp(sType, "integer"))
+		if(!strcmp(type, PREFERENCE_TYPE_NAME_INTEGER))
 		{
-			int value;
-			if(Xml::GetAttributeIntValue(pPref, "Value", &value))
+			int value = 0;
+			if(Xml::GetAttributeIntValue(prefNode, PREFERENCE_ATTRIBUTE_NAME_VALUE, &value))
 			{
 				RegisterPreferenceInteger(name, value);
 			}
 		}
-		else if(!strcmp(sType, "boolean"))
+		else if(!strcmp(type, PREFERENCE_TYPE_NAME_BOOLEAN))
 		{
-			bool value;
-			if(Xml::GetAttributeBoolValue(pPref, "Value", &value))
+			bool value = false;
+			if(Xml::GetAttributeBoolValue(prefNode, PREFERENCE_ATTRIBUTE_NAME_VALUE, &value))
 			{
 				RegisterPreferenceBoolean(name, value);
 			}
 		}
-		else if(!strcmp(sType, "string"))
+		else if(!strcmp(type, PREFERENCE_TYPE_NAME_STRING))
 		{
-			const char* value;
-			if(Xml::GetAttributeStringValue(pPref, "Value", &value))
+			const char* value = nullptr;
+			if(Xml::GetAttributeStringValue(prefNode, PREFERENCE_ATTRIBUTE_NAME_VALUE, &value))
 			{
 				RegisterPreferenceString(name, value);
 			}
+		}
+		else if(!strcmp(type, PREFERENCE_TYPE_NAME_PATH))
+		{
+			const char* valueString = nullptr;
+			if(Xml::GetAttributeStringValue(prefNode, PREFERENCE_ATTRIBUTE_NAME_VALUE, &valueString))
+			{
+				auto value = PathUtils::GetPathFromNativeString(valueString);
+				RegisterPreferencePath(name, value);
+			}
+		}
+		else
+		{
+			//Unknown preference type
+			assert(false);
 		}
 	}
 }
@@ -252,13 +277,13 @@ void CConfig::Save()
 	{
 		Framework::CStdStream stream(CreateOutputStdStream(m_path.native()));
 
-		Xml::CNode*	configNode = new Xml::CNode("Config", true);
+		auto configNode = new Xml::CNode("Config", true);
 
 		for(const auto& preferencePair : m_preferences)
 		{
 			const auto& preference = preferencePair.second;
 
-			Xml::CNode* preferenceNode = new Xml::CNode("Preference", true);
+			auto preferenceNode = new Xml::CNode("Preference", true);
 			preference->Serialize(preferenceNode);
 			configNode->InsertNode(preferenceNode);
 		}
@@ -307,22 +332,23 @@ const char* CConfig::CPreference::GetTypeString() const
 	switch(m_type)
 	{
 	case TYPE_INTEGER:
-		return "integer";
-		break;
-	case TYPE_STRING:
-		return "string";
-		break;
+		return PREFERENCE_TYPE_NAME_INTEGER;
 	case TYPE_BOOLEAN:
-		return "boolean";
-		break;
+		return PREFERENCE_TYPE_NAME_BOOLEAN;
+	case TYPE_STRING:
+		return PREFERENCE_TYPE_NAME_STRING;
+	case TYPE_PATH:
+		return PREFERENCE_TYPE_NAME_PATH;
+	default:
+		assert(false);
+		return "";
 	}
-	return "";
 }
 
 void CConfig::CPreference::Serialize(Xml::CNode* pNode) const
 {
-	pNode->InsertAttribute(Xml::CreateAttributeStringValue("Name", m_name.c_str()));
-	pNode->InsertAttribute(Xml::CreateAttributeStringValue("Type", GetTypeString()));
+	pNode->InsertAttribute(Xml::CreateAttributeStringValue(PREFERENCE_ATTRIBUTE_NAME_NAME, m_name.c_str()));
+	pNode->InsertAttribute(Xml::CreateAttributeStringValue(PREFERENCE_ATTRIBUTE_NAME_TYPE, GetTypeString()));
 }
 
 /////////////////////////////////////////////////////////
@@ -350,7 +376,7 @@ void CConfig::CPreferenceInteger::Serialize(Xml::CNode* pNode) const
 {
 	CPreference::Serialize(pNode);
 
-	pNode->InsertAttribute(Xml::CreateAttributeIntValue("Value", m_value));
+	pNode->InsertAttribute(Xml::CreateAttributeIntValue(PREFERENCE_ATTRIBUTE_NAME_VALUE, m_value));
 }
 
 /////////////////////////////////////////////////////////
@@ -378,7 +404,7 @@ void CConfig::CPreferenceBoolean::Serialize(Xml::CNode* pNode) const
 {
 	CPreference::Serialize(pNode);
 
-	pNode->InsertAttribute(Xml::CreateAttributeBoolValue("Value", m_value));
+	pNode->InsertAttribute(Xml::CreateAttributeBoolValue(PREFERENCE_ATTRIBUTE_NAME_VALUE, m_value));
 }
 
 /////////////////////////////////////////////////////////
@@ -406,5 +432,34 @@ void CConfig::CPreferenceString::Serialize(Xml::CNode* pNode) const
 {
 	CPreference::Serialize(pNode);
 
-	pNode->InsertAttribute(Xml::CreateAttributeStringValue("Value", m_value.c_str()));
+	pNode->InsertAttribute(Xml::CreateAttributeStringValue(PREFERENCE_ATTRIBUTE_NAME_VALUE, m_value.c_str()));
+}
+
+/////////////////////////////////////////////////////////
+//CPreferencePath implementation
+/////////////////////////////////////////////////////////
+
+CConfig::CPreferencePath::CPreferencePath(const char* name, const PathType& value)
+: CPreference(name, TYPE_PATH)
+, m_value(value)
+{
+
+}
+
+CConfig::PathType CConfig::CPreferencePath::GetValue() const
+{
+	return m_value;
+}
+
+void CConfig::CPreferencePath::SetValue(const PathType& value)
+{
+	m_value = value;
+}
+
+void CConfig::CPreferencePath::Serialize(Xml::CNode* node) const
+{
+	CPreference::Serialize(node);
+
+	auto valueString = PathUtils::GetNativeStringFromPath(m_value);
+	node->InsertAttribute(Xml::CreateAttributeStringValue(PREFERENCE_ATTRIBUTE_NAME_VALUE, valueString.c_str()));
 }

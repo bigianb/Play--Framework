@@ -16,7 +16,7 @@ namespace Framework
 	class CStream
 	{
 	public:
-		virtual			~CStream();
+		virtual			~CStream() = default;
 		virtual void	Seek(int64, STREAM_SEEK_DIRECTION) = 0;
 		virtual uint64	Tell() = 0;
 		virtual uint64	Read(void*, uint64) = 0;
@@ -38,6 +38,7 @@ namespace Framework
 
 		std::string		ReadString();
 		std::string		ReadString(size_t);
+		std::string		ReadLine(bool ignoreCr = true);
 
 		void			Write8(uint8);
 		void			Write16(uint16);

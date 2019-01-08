@@ -1,18 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(Framework_MySql)
 
-set(CMAKE_MODULE_PATH
-	${CMAKE_CURRENT_SOURCE_DIR}/../../../Dependencies/cmake-modules
-	${CMAKE_MODULE_PATH}
-)
-
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(../Framework_Common.cmake)
 
 find_package(MYSQL REQUIRED)
-include_directories(${MYSQL_INCLUDE_DIR})
-
-include_directories(../../include)
 
 set(SRC_FILES
 	../../src/mysql/Client.cpp
@@ -21,3 +12,4 @@ set(SRC_FILES
 )
 
 add_library(Framework_MySql ${SRC_FILES})
+target_include_directories(Framework_MySql PUBLIC ${FRAMEWORK_INCLUDE_DIR} ${MYSQL_INCLUDE_DIR})

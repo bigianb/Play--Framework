@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include "MemStream.h"
 
 namespace Framework
@@ -10,18 +11,29 @@ namespace Framework
 		enum class HTTP_STATUS_CODE
 		{
 			OK = 200,
-			NOT_FOUND = 404
+			PARTIAL_CONTENT = 206,
+			TEMPORARY_REDIRECT = 307,
+			BAD_REQUEST = 400,
+			FORBIDDEN = 403,
+			NOT_FOUND = 404,
+			NOT_IMPLEMENTED = 501
 		};
 
 		enum class HTTP_VERB
 		{
+			DELETE,
+			HEAD,
 			GET,
-			POST
+			POST,
+			PUT
 		};
+
+		typedef std::map<std::string, std::string> HeaderMap;
 
 		struct RequestResult
 		{
 			HTTP_STATUS_CODE      statusCode = HTTP_STATUS_CODE::OK;
+			HeaderMap             headers;
 			Framework::CMemStream data;
 		};
 
@@ -34,12 +46,16 @@ namespace Framework
 
 			void SetUrl(std::string);
 			void SetVerb(HTTP_VERB);
+			void SetHeaders(HeaderMap);
 			void SetRequestBody(std::string);
 			virtual RequestResult SendRequest() = 0;
 
 		protected:
+			static HeaderMap ReadHeaderMap(Framework::CStream&);
+
 			std::string m_url;
 			HTTP_VERB m_verb = HTTP_VERB::GET;
+			HeaderMap m_headers;
 			std::string m_requestBody;
 		};
 	}

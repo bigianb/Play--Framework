@@ -13,9 +13,10 @@ string string_cast<string>(const wchar_t* src)
 	size_t srcSize = wcslen(src);
 	char* dst = reinterpret_cast<char*>(alloca((srcSize * maxCharSize) + 1));
 	char* dstPtr = dst;
+	mbstate_t mbState = {};
 	for(unsigned int i = 0; i < srcSize; i++)
 	{
-		int charSize = wctomb(dstPtr, src[i]);
+		int charSize = wcrtomb(dstPtr, src[i], &mbState);
 		if(charSize < 0)
 		{
 			(*dstPtr) = '?';
@@ -34,15 +35,10 @@ string string_cast<string>(const wchar_t* src)
 template <>
 wstring string_cast<wstring>(const char* sSource)
 {
-	size_t nSize;
-	wchar_t* sConvert;
-
-	nSize = strlen(sSource) + 1;
-	sConvert = (wchar_t*)alloca(nSize * sizeof(wchar_t));
-
-	mbstowcs(sConvert, sSource, nSize);
-
-	return wstring(sConvert);
+	size_t size = strlen(sSource) + 1;
+	auto convert = reinterpret_cast<wchar_t*>(alloca(size * sizeof(wchar_t)));
+	mbstowcs(convert, sSource, size);
+	return wstring(convert);
 }
 
 template <>

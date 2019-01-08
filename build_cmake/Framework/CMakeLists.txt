@@ -1,55 +1,40 @@
 cmake_minimum_required(VERSION 2.8)
 project(Framework)
 
-set(CMAKE_MODULE_PATH
-	${CMAKE_CURRENT_SOURCE_DIR}/../../../Dependencies/cmake-modules
-	${CMAKE_MODULE_PATH}
-)
-
-if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE Release CACHE STRING
-		"Choose the type of build, options are: None Debug Release"
-		FORCE)
-endif()
-
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
-
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if(APPLE)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
-endif(APPLE)
+include(../Framework_Common.cmake)
 
 find_package(ZLIB)
 if(ZLIB_FOUND)
-	include_directories(${ZLIB_INCLUDE_DIRS})
+	LIST(APPEND PROJECT_INCLUDES ${ZLIB_INCLUDE_DIRS})
 else()
 	MESSAGE("-- Using Provided zlib source")
-	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../Dependencies/zlib-1.2.8)
+	LIST(APPEND PROJECT_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../../../Dependencies/zlib-1.2.8)
 endif(ZLIB_FOUND)
 
 find_package(ICUUC)
 if(ICUUC_FOUND)
-	include_directories(${ICUUC_INCLUDE_DIRS})
+	LIST(APPEND PROJECT_INCLUDES ${ICUUC_INCLUDE_DIRS})
+	LIST(APPEND PROJECT_LIBS ${ICUUC_LIBRARIES})
 	add_definitions(-DHAS_ICU)
 endif()
 
-if (NOT TARGET Boost::boost)
+find_package(OpenSSL)
+if(OPENSSL_FOUND)
+	LIST(APPEND PROJECT_INCLUDES ${OPENSSL_INCLUDE_DIR})
+	LIST(APPEND PROJECT_LIBS ${OPENSSL_LIBRARIES})
+	add_definitions(-DHAS_OPENSSL)
+endif()
+
+if(NOT TARGET Boost::boost)
 	add_subdirectory(
 		${CMAKE_CURRENT_SOURCE_DIR}/../../../Dependencies/boost-cmake
 		${CMAKE_CURRENT_BINARY_DIR}/boost-cmake
 	)
 endif()
 
-if (WIN32)
-	add_definitions(-D_UNICODE -DUNICODE)
-	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-	add_definitions(-D_LIB)
-endif (WIN32)
-
-include_directories(../../include)
+if(APPLE)
+	LIST(APPEND PRIVATE_PROJECT_LIBS "-framework Foundation")
+endif()
 
 set(COMMON_SRC_FILES
 	../../src/Base64.cpp
@@ -60,7 +45,11 @@ set(COMMON_SRC_FILES
 	../../src/bitmap/TGA.cpp
 	../../src/BitStream.cpp
 	../../src/Config.cpp
+	../../src/Csv.cpp
+	../../include/Csv.h
 	../../src/Endian.cpp
+	../../src/HashUtils.cpp
+	../../include/HashUtils.h
 	../../src/idct/IEEE1180.cpp
 	../../src/layout/FlatLayout.cpp
 	../../src/layout/GridLayout.cpp
@@ -93,6 +82,7 @@ set(COMMON_SRC_FILES
 	../../src/StreamBitStream.cpp
 	../../src/string_cast.cpp
 	../../src/string_cast_sjis.cpp
+	../../src/string_cast_win1252.cpp
 	../../src/StdStream.cpp
 	../../src/StdStreamUtils.cpp
 	../../src/Utf8.cpp
@@ -110,7 +100,7 @@ set(COMMON_SRC_FILES
 )
 
 if(ANDROID)
-	set(PLATFORM_SPECIFIC_SRC_FILES
+	set(PLATFORM_SRC_FILES
 		../../src/android/AssetStream.cpp
 		../../src/android/AssetManager.cpp
 		../../src/android/JavaObject.cpp
@@ -119,5 +109,6 @@ if(ANDROID)
 	)
 endif()
 
-add_library(Framework ${COMMON_SRC_FILES} ${PLATFORM_SPECIFIC_SRC_FILES})
-target_link_libraries(Framework PUBLIC Boost::boost)
+add_library(Framework ${COMMON_SRC_FILES} ${PLATFORM_SRC_FILES})
+target_link_libraries(Framework PUBLIC Boost::boost Boost::filesystem ${PROJECT_LIBS} PRIVATE ${PRIVATE_PROJECT_LIBS})
+target_include_directories(Framework PUBLIC ${FRAMEWORK_INCLUDE_DIR} ${PROJECT_INCLUDES})
