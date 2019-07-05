@@ -35,14 +35,21 @@
 
 #elif defined(__linux__) || defined(__FreeBSD__)
 
+#if defined(USE_GLEW)
 #include <GL/glew.h>
+#elif defined(GLES_COMPATIBILITY)
+#include <GLES3/gl3.h>
+#endif
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 
 #endif
 
+#include "maybe_unused.h"
+
 #ifdef _DEBUG
-#define CHECKGLERROR() { auto errorCode = glGetError(); assert(errorCode == GL_NO_ERROR); }
+#define CHECKGLERROR() { FRAMEWORK_MAYBE_UNUSED auto errorCode = glGetError(); assert(errorCode == GL_NO_ERROR); }
 #else
 #define CHECKGLERROR()
 #endif

@@ -1,15 +1,19 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(Framework)
 
 include(../Framework_Common.cmake)
 
 find_package(ZLIB)
-if(ZLIB_FOUND)
-	LIST(APPEND PROJECT_INCLUDES ${ZLIB_INCLUDE_DIRS})
-else()
+if(NOT ZLIB_FOUND)
 	MESSAGE("-- Using Provided zlib source")
-	LIST(APPEND PROJECT_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../../../Dependencies/zlib-1.2.8)
-endif(ZLIB_FOUND)
+	if(NOT TARGET zlibstatic)
+		add_subdirectory(
+			${CMAKE_CURRENT_SOURCE_DIR}/../../../Dependencies/build_cmake/zlib-1.2.8
+			${CMAKE_CURRENT_BINARY_DIR}/zlib-1.2.8
+		)
+	endif()
+endif(NOT ZLIB_FOUND)
+LIST(APPEND PROJECT_LIBS ZLIB::ZLIB)
 
 find_package(ICUUC)
 if(ICUUC_FOUND)
@@ -61,6 +65,7 @@ set(COMMON_SRC_FILES
 	../../src/layout/VerticalLayout.cpp
 	../../src/LzAri.cpp
 	../../src/math/MathStringUtils.cpp
+	../../include/maybe_unused.h
 	../../src/MemStream.cpp
 	../../src/mpeg2/CodedBlockPatternTable.cpp
 	../../src/mpeg2/DcSizeChrominanceTable.cpp
@@ -80,11 +85,16 @@ set(COMMON_SRC_FILES
 	../../src/PtrStream.cpp
 	../../src/Stream.cpp
 	../../src/StreamBitStream.cpp
+	../../src/StringUtils.cpp
+	../../include/StringUtils.h
 	../../src/string_cast.cpp
 	../../src/string_cast_sjis.cpp
 	../../src/string_cast_win1252.cpp
+	../../include/std_experimental_map.h
 	../../src/StdStream.cpp
 	../../src/StdStreamUtils.cpp
+	../../src/ThreadPool.cpp
+	../../include/ThreadPool.h
 	../../src/Utf8.cpp
 	../../src/xml/FilteringNodeIterator.cpp
 	../../src/xml/Node.cpp
