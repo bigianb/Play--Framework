@@ -41,6 +41,7 @@ void CDevice::Reset()
 	vkCmdBindVertexBuffers = nullptr;
 	vkCmdClearColorImage = nullptr;
 	vkCmdCopyBufferToImage = nullptr;
+	vkCmdDispatch = nullptr;
 	vkCmdDraw = nullptr;
 	vkCmdDrawIndexed = nullptr;
 	vkCmdEndRenderPass = nullptr;
@@ -49,6 +50,7 @@ void CDevice::Reset()
 	vkCmdPushConstants = nullptr;
 	vkCmdSetScissor = nullptr;
 	vkCmdSetViewport = nullptr;
+	vkCmdUpdateBuffer = nullptr;
 	
 	vkGetDeviceQueue = nullptr;
 	
@@ -77,6 +79,12 @@ void CDevice::Reset()
 	vkCreateDescriptorSetLayout = nullptr;
 	vkDestroyDescriptorSetLayout = nullptr;
 	
+	vkCreateFence = nullptr;
+	vkDestroyFence = nullptr;
+	vkGetFenceStatus = nullptr;
+	vkResetFences = nullptr;
+	vkWaitForFences = nullptr;
+
 	vkCreateFramebuffer = nullptr;
 	vkDestroyFramebuffer = nullptr;
 	
@@ -94,6 +102,7 @@ void CDevice::Reset()
 	vkUnmapMemory = nullptr;
 	
 	vkCreateGraphicsPipelines = nullptr;
+	vkCreateComputePipelines = nullptr;
 	vkDestroyPipeline = nullptr;
 	
 	vkCreatePipelineCache = nullptr;
@@ -116,6 +125,7 @@ void CDevice::Reset()
 	
 	vkAcquireNextImageKHR = nullptr;
 	vkCreateSwapchainKHR = nullptr;
+	vkDestroySwapchainKHR = nullptr;
 	vkGetSwapchainImagesKHR = nullptr;
 	vkQueuePresentKHR = nullptr;
 }
@@ -137,6 +147,7 @@ CDevice& CDevice::operator =(CDevice&& rhs)
 	std::swap(vkCmdBindVertexBuffers, rhs.vkCmdBindVertexBuffers);
 	std::swap(vkCmdClearColorImage, rhs.vkCmdClearColorImage);
 	std::swap(vkCmdCopyBufferToImage, rhs.vkCmdCopyBufferToImage);
+	std::swap(vkCmdDispatch, rhs.vkCmdDispatch);
 	std::swap(vkCmdDraw, rhs.vkCmdDraw);
 	std::swap(vkCmdDrawIndexed, rhs.vkCmdDrawIndexed);
 	std::swap(vkCmdEndRenderPass, rhs.vkCmdEndRenderPass);
@@ -145,6 +156,7 @@ CDevice& CDevice::operator =(CDevice&& rhs)
 	std::swap(vkCmdPushConstants, rhs.vkCmdPushConstants);
 	std::swap(vkCmdSetScissor, rhs.vkCmdSetScissor);
 	std::swap(vkCmdSetViewport, rhs.vkCmdSetViewport);
+	std::swap(vkCmdUpdateBuffer, rhs.vkCmdUpdateBuffer);
 	
 	std::swap(vkGetDeviceQueue, rhs.vkGetDeviceQueue);
 	
@@ -173,6 +185,12 @@ CDevice& CDevice::operator =(CDevice&& rhs)
 	std::swap(vkCreateDescriptorSetLayout, rhs.vkCreateDescriptorSetLayout);
 	std::swap(vkDestroyDescriptorSetLayout, rhs.vkDestroyDescriptorSetLayout);
 	
+	std::swap(vkCreateFence, rhs.vkCreateFence);
+	std::swap(vkDestroyFence, rhs.vkDestroyFence);
+	std::swap(vkGetFenceStatus, rhs.vkGetFenceStatus);
+	std::swap(vkResetFences, rhs.vkResetFences);
+	std::swap(vkWaitForFences, rhs.vkWaitForFences);
+
 	std::swap(vkCreateFramebuffer, rhs.vkCreateFramebuffer);
 	std::swap(vkDestroyFramebuffer, rhs.vkDestroyFramebuffer);
 	
@@ -190,6 +208,7 @@ CDevice& CDevice::operator =(CDevice&& rhs)
 	std::swap(vkUnmapMemory, rhs.vkUnmapMemory);
 	
 	std::swap(vkCreateGraphicsPipelines, rhs.vkCreateGraphicsPipelines);
+	std::swap(vkCreateComputePipelines, rhs.vkCreateComputePipelines);
 	std::swap(vkDestroyPipeline, rhs.vkDestroyPipeline);
 	
 	std::swap(vkCreatePipelineCache, rhs.vkCreatePipelineCache);
@@ -212,6 +231,7 @@ CDevice& CDevice::operator =(CDevice&& rhs)
 	
 	std::swap(vkAcquireNextImageKHR, rhs.vkAcquireNextImageKHR);
 	std::swap(vkCreateSwapchainKHR, rhs.vkCreateSwapchainKHR);
+	std::swap(vkDestroySwapchainKHR, rhs.vkDestroySwapchainKHR);
 	std::swap(vkGetSwapchainImagesKHR, rhs.vkGetSwapchainImagesKHR);
 	std::swap(vkQueuePresentKHR, rhs.vkQueuePresentKHR);
 	
@@ -240,6 +260,7 @@ void CDevice::Create(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo& 
 	SET_PROC_ADDR(vkCmdBindVertexBuffers);
 	SET_PROC_ADDR(vkCmdClearColorImage);
 	SET_PROC_ADDR(vkCmdCopyBufferToImage);
+	SET_PROC_ADDR(vkCmdDispatch);
 	SET_PROC_ADDR(vkCmdDraw);
 	SET_PROC_ADDR(vkCmdDrawIndexed);
 	SET_PROC_ADDR(vkCmdEndRenderPass);
@@ -248,6 +269,7 @@ void CDevice::Create(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo& 
 	SET_PROC_ADDR(vkCmdPushConstants);
 	SET_PROC_ADDR(vkCmdSetScissor);
 	SET_PROC_ADDR(vkCmdSetViewport);
+	SET_PROC_ADDR(vkCmdUpdateBuffer);
 	
 	SET_PROC_ADDR(vkGetDeviceQueue);
 	
@@ -276,6 +298,12 @@ void CDevice::Create(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo& 
 	SET_PROC_ADDR(vkCreateDescriptorSetLayout);
 	SET_PROC_ADDR(vkDestroyDescriptorSetLayout);
 	
+	SET_PROC_ADDR(vkCreateFence);
+	SET_PROC_ADDR(vkDestroyFence);
+	SET_PROC_ADDR(vkGetFenceStatus);
+	SET_PROC_ADDR(vkResetFences);
+	SET_PROC_ADDR(vkWaitForFences);
+
 	SET_PROC_ADDR(vkCreateFramebuffer);
 	SET_PROC_ADDR(vkDestroyFramebuffer);
 	
@@ -293,6 +321,7 @@ void CDevice::Create(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo& 
 	SET_PROC_ADDR(vkUnmapMemory);
 	
 	SET_PROC_ADDR(vkCreateGraphicsPipelines);
+	SET_PROC_ADDR(vkCreateComputePipelines);
 	SET_PROC_ADDR(vkDestroyPipeline);
 	
 	SET_PROC_ADDR(vkCreatePipelineCache);
@@ -315,6 +344,7 @@ void CDevice::Create(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo& 
 	
 	SET_PROC_ADDR(vkAcquireNextImageKHR);
 	SET_PROC_ADDR(vkCreateSwapchainKHR);
+	SET_PROC_ADDR(vkDestroySwapchainKHR);
 	SET_PROC_ADDR(vkGetSwapchainImagesKHR);
 	SET_PROC_ADDR(vkQueuePresentKHR);
 }

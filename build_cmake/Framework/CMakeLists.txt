@@ -15,6 +15,14 @@ if(NOT ZLIB_FOUND)
 endif(NOT ZLIB_FOUND)
 LIST(APPEND PROJECT_LIBS ZLIB::ZLIB)
 
+if(NOT TARGET ghc_filesystem)
+	add_subdirectory(
+		${CMAKE_CURRENT_SOURCE_DIR}/../../../Dependencies/ghc_filesystem
+		${CMAKE_CURRENT_BINARY_DIR}/ghc_filesystem
+	)
+endif()
+LIST(APPEND PROJECT_LIBS ghc_filesystem)
+
 find_package(ICUUC)
 if(ICUUC_FOUND)
 	LIST(APPEND PROJECT_INCLUDES ${ICUUC_INCLUDE_DIRS})
@@ -27,13 +35,6 @@ if(OPENSSL_FOUND)
 	LIST(APPEND PROJECT_INCLUDES ${OPENSSL_INCLUDE_DIR})
 	LIST(APPEND PROJECT_LIBS ${OPENSSL_LIBRARIES})
 	add_definitions(-DHAS_OPENSSL)
-endif()
-
-if(NOT TARGET Boost::boost)
-	add_subdirectory(
-		${CMAKE_CURRENT_SOURCE_DIR}/../../../Dependencies/boost-cmake
-		${CMAKE_CURRENT_BINARY_DIR}/boost-cmake
-	)
 endif()
 
 if(APPLE)
@@ -50,10 +51,9 @@ set(COMMON_SRC_FILES
 	../../src/BitStream.cpp
 	../../src/Config.cpp
 	../../src/Csv.cpp
-	../../include/Csv.h
 	../../src/Endian.cpp
+	../../src/FilesystemUtils.cpp
 	../../src/HashUtils.cpp
-	../../include/HashUtils.h
 	../../src/idct/IEEE1180.cpp
 	../../src/layout/FlatLayout.cpp
 	../../src/layout/GridLayout.cpp
@@ -65,7 +65,6 @@ set(COMMON_SRC_FILES
 	../../src/layout/VerticalLayout.cpp
 	../../src/LzAri.cpp
 	../../src/math/MathStringUtils.cpp
-	../../include/maybe_unused.h
 	../../src/MemStream.cpp
 	../../src/mpeg2/CodedBlockPatternTable.cpp
 	../../src/mpeg2/DcSizeChrominanceTable.cpp
@@ -86,15 +85,12 @@ set(COMMON_SRC_FILES
 	../../src/Stream.cpp
 	../../src/StreamBitStream.cpp
 	../../src/StringUtils.cpp
-	../../include/StringUtils.h
 	../../src/string_cast.cpp
 	../../src/string_cast_sjis.cpp
 	../../src/string_cast_win1252.cpp
-	../../include/std_experimental_map.h
 	../../src/StdStream.cpp
 	../../src/StdStreamUtils.cpp
 	../../src/ThreadPool.cpp
-	../../include/ThreadPool.h
 	../../src/Utf8.cpp
 	../../src/xml/FilteringNodeIterator.cpp
 	../../src/xml/Node.cpp
@@ -107,6 +103,25 @@ set(COMMON_SRC_FILES
 	../../src/zip/ZipFile.cpp
 	../../src/zip/ZipInflateStream.cpp
 	../../src/zip/ZipStoreStream.cpp
+
+	../../include/Csv.h
+	../../include/filesystem_def.h
+	../../include/FilesystemUtils.h
+	../../include/HashUtils.h
+	../../include/layout/FlatLayout.h
+	../../include/layout/GridLayout.h
+	../../include/layout/HorizontalLayout.h
+	../../include/layout/LayoutBase.h
+	../../include/layout/LayoutBaseItem.h
+	../../include/layout/LayoutObject.h
+	../../include/layout/LayoutStretch.h
+	../../include/layout/VerticalLayout.h
+	../../include/maybe_unused.h
+	../../include/nodiscard.h
+	../../include/signal/Signal.h
+	../../include/StringUtils.h
+	../../include/std_experimental_map.h
+	../../include/ThreadPool.h
 )
 
 if(ANDROID)
@@ -120,5 +135,5 @@ if(ANDROID)
 endif()
 
 add_library(Framework ${COMMON_SRC_FILES} ${PLATFORM_SRC_FILES})
-target_link_libraries(Framework PUBLIC Boost::boost Boost::filesystem ${PROJECT_LIBS} PRIVATE ${PRIVATE_PROJECT_LIBS})
+target_link_libraries(Framework PUBLIC ${PROJECT_LIBS} PRIVATE ${PRIVATE_PROJECT_LIBS})
 target_include_directories(Framework PUBLIC ${FRAMEWORK_INCLUDE_DIR} ${PROJECT_INCLUDES})

@@ -11,10 +11,11 @@ namespace Framework
 		class CInstance
 		{
 		public:
-			        CInstance() = default;
-			        CInstance(const VkInstanceCreateInfo&);
-			        CInstance(const CInstance&) = delete;
-			        CInstance(CInstance&&);
+			         CInstance() = default;
+			explicit CInstance(VkInstance);
+			         CInstance(const VkInstanceCreateInfo&);
+			         CInstance(const CInstance&) = delete;
+			         CInstance(CInstance&&);
 			
 			virtual ~CInstance();
 			
@@ -30,6 +31,7 @@ namespace Framework
 			DECLARE_FUNCTION(vkCreateDevice)
 			DECLARE_FUNCTION(vkDestroyDevice)
 			
+			DECLARE_FUNCTION(vkEnumerateDeviceExtensionProperties)
 			DECLARE_FUNCTION(vkEnumeratePhysicalDevices)
 			DECLARE_FUNCTION(vkGetDeviceProcAddr)
 			DECLARE_FUNCTION(vkGetPhysicalDeviceMemoryProperties)
@@ -41,6 +43,7 @@ namespace Framework
 			DECLARE_FUNCTION(vkDestroyDebugReportCallbackEXT)
 			
 			//VK_KHR_surface
+			DECLARE_FUNCTION(vkDestroySurfaceKHR)
 			DECLARE_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR)
 			DECLARE_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR)
 			DECLARE_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR)
@@ -58,9 +61,19 @@ namespace Framework
 			//VK_KHR_win32_surface
 			DECLARE_FUNCTION(vkCreateWin32SurfaceKHR)
 #endif
+#if defined(VK_USE_PLATFORM_MACOS_MVK)
+			//VK_MVK_macos_surface
+			DECLARE_FUNCTION(vkCreateMacOSSurfaceMVK)
+#endif
+#if defined(VK_USE_PLATFORM_IOS_MVK)
+			//VK_MVK_ios_surface
+			DECLARE_FUNCTION(vkCreateIOSSurfaceMVK)
+#endif
 		private:
 			void    Create(const VkInstanceCreateInfo&);
+			void    GetProcAddrs();
 			
+			bool m_ownsHandle = false;
 			VkInstance m_handle = VK_NULL_HANDLE;
 		};
 	}

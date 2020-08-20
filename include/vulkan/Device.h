@@ -37,6 +37,7 @@ namespace Framework
 			DECLARE_FUNCTION(vkCmdBindVertexBuffers)
 			DECLARE_FUNCTION(vkCmdClearColorImage)
 			DECLARE_FUNCTION(vkCmdCopyBufferToImage)
+			DECLARE_FUNCTION(vkCmdDispatch)
 			DECLARE_FUNCTION(vkCmdDraw)
 			DECLARE_FUNCTION(vkCmdDrawIndexed)
 			DECLARE_FUNCTION(vkCmdEndRenderPass)
@@ -45,6 +46,7 @@ namespace Framework
 			DECLARE_FUNCTION(vkCmdPushConstants)
 			DECLARE_FUNCTION(vkCmdSetScissor)
 			DECLARE_FUNCTION(vkCmdSetViewport)
+			DECLARE_FUNCTION(vkCmdUpdateBuffer)
 			
 			DECLARE_FUNCTION(vkGetDeviceQueue)
 			
@@ -79,6 +81,13 @@ namespace Framework
 			DECLARE_FUNCTION(vkCreateDescriptorSetLayout)
 			DECLARE_FUNCTION(vkDestroyDescriptorSetLayout)
 			
+			//Fence
+			DECLARE_FUNCTION(vkCreateFence)
+			DECLARE_FUNCTION(vkDestroyFence)
+			DECLARE_FUNCTION(vkGetFenceStatus)
+			DECLARE_FUNCTION(vkResetFences)
+			DECLARE_FUNCTION(vkWaitForFences)
+
 			//Framebuffer
 			DECLARE_FUNCTION(vkCreateFramebuffer)
 			DECLARE_FUNCTION(vkDestroyFramebuffer)
@@ -101,6 +110,7 @@ namespace Framework
 			
 			//Pipeline
 			DECLARE_FUNCTION(vkCreateGraphicsPipelines)
+			DECLARE_FUNCTION(vkCreateComputePipelines)
 			DECLARE_FUNCTION(vkDestroyPipeline)
 			
 			//Pipeline Cache
@@ -130,6 +140,7 @@ namespace Framework
 			//VK_KHR_swapchain
 			DECLARE_FUNCTION(vkAcquireNextImageKHR)
 			DECLARE_FUNCTION(vkCreateSwapchainKHR)
+			DECLARE_FUNCTION(vkDestroySwapchainKHR)
 			DECLARE_FUNCTION(vkGetSwapchainImagesKHR)
 			DECLARE_FUNCTION(vkQueuePresentKHR)
 		

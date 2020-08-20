@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <tchar.h>
 #else
+#include <vector>
 #include <dlfcn.h>
 #endif
 #include <stdexcept>
@@ -14,6 +15,15 @@ using namespace Framework::Vulkan;
 CLoader::CLoader()
 {
 	LoadLibrary();
+}
+
+void* CLoader::GetLibraryProcAddr(const char* procName)
+{
+#ifdef _WIN32
+	return nullptr;
+#else
+	return dlsym(m_vulkanDl, procName);
+#endif
 }
 
 void CLoader::LoadLibrary()
@@ -32,10 +42,27 @@ void CLoader::LoadLibrary()
 #else
 	assert(m_vulkanDl == nullptr);
 	
-	m_vulkanDl = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
+	std::vector<const char*> libPaths;
+#ifdef __APPLE__
+	libPaths.push_back("@executable_path/../Resources/libMoltenVK.dylib");
+#else
+	libPaths.push_back("libvulkan.so");
+	libPaths.push_back("libvulkan.so.1");
+#endif
+	
+	for(const auto& libPath : libPaths)
+	{
+		m_vulkanDl = dlopen(libPath, RTLD_NOW | RTLD_LOCAL);
+		if(m_vulkanDl)
+		{
+			break;
+		}
+		printf("Warning: Failed attempt to load Vulkan library from '%s': %s.\n", libPath, dlerror());
+	}
+
 	if(!m_vulkanDl)
 	{
-		throw std::runtime_error(string_format("Failed to load Vulkan library: %s.", dlerror()));
+		throw std::runtime_error("Failed to find an appropriate Vulkan library to load.");
 	}
 	
 	vkCreateInstance      = reinterpret_cast<PFN_vkCreateInstance>(dlsym(m_vulkanDl, "vkCreateInstance"));
