@@ -62,7 +62,7 @@ RequestResult CCurlHttpClient::SendRequest()
 	CCurlRequest curl;
 	assert(curl != nullptr);
 	{
-		Framework::CPtrStream bodyInputStream(m_requestBody.c_str(), m_requestBody.size());
+		Framework::CPtrStream bodyInputStream(m_requestBody.data(), m_requestBody.size());
 		Framework::CMemStream responseHeadersStream;
 
 		curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
@@ -73,6 +73,12 @@ RequestResult CCurlHttpClient::SendRequest()
 		curl_easy_setopt(curl, CURLOPT_READDATA, &bodyInputStream);
 		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &headerCallback);
 		curl_easy_setopt(curl, CURLOPT_HEADERDATA, &responseHeadersStream);
+
+		auto caBundlePath = m_globalSettings[GLOBAL_SETTING::CERTIFICATE_AUTHORITY_BUNDLE];
+		if(!caBundlePath.empty())
+		{
+			curl_easy_setopt(curl, CURLOPT_CAINFO, caBundlePath.c_str());
+		}
 
 		switch(m_verb)
 		{
@@ -86,7 +92,7 @@ RequestResult CCurlHttpClient::SendRequest()
 			break;
 		case HTTP_VERB::PUT:
 			curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-			curl_easy_setopt(curl, CURLOPT_INFILESIZE, m_requestBody.length());
+			curl_easy_setopt(curl, CURLOPT_INFILESIZE, m_requestBody.size());
 			break;
 		default:
 			throw std::runtime_error("Unsupported HTTP verb.");

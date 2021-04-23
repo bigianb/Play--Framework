@@ -104,6 +104,7 @@ set(COMMON_SRC_FILES
 	../../src/zip/ZipInflateStream.cpp
 	../../src/zip/ZipStoreStream.cpp
 
+	../../include/BitManip.h
 	../../include/Csv.h
 	../../include/filesystem_def.h
 	../../include/FilesystemUtils.h
@@ -119,9 +120,17 @@ set(COMMON_SRC_FILES
 	../../include/maybe_unused.h
 	../../include/nodiscard.h
 	../../include/signal/Signal.h
+	../../include/Singleton.h
 	../../include/StringUtils.h
 	../../include/std_experimental_map.h
+	../../include/std_experimental_set.h
 	../../include/ThreadPool.h
+	../../include/zip/ZipArchiveReader.h
+	../../include/zip/ZipArchiveWriter.h
+	../../include/zip/ZipDeflateStream.h
+	../../include/zip/ZipFile.h
+	../../include/zip/ZipInflateStream.h
+	../../include/zip/ZipStoreStream.h
 )
 
 if(ANDROID)
